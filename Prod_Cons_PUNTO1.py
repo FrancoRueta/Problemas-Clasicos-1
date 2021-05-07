@@ -41,14 +41,24 @@ class listaFinita(list):
     def __init__(self, max_elementos):
             self.max_elementos = max_elementos
             super().__init__()
+            self.condicion = threading.Condition()
 
-    def pop(self, index):
-        assert len(self) != 0, "lista vacia"
-        return super().pop(index)
+    def pop(self,index = 0): #Agregamos el modulo condition.
+        self.condicion.acquire()
+        while len(self) == 0:
+            self.condicion.wait()
+        elemento = super().pop(index)
+        self.condicion.notify(1)
+        self.condicion.release()
+        return elemento
 
-    def append(self, item):
-        assert len(self) < self.max_elementos,"lista llena"
+    def append(self, item): #Agregamos el modulo condition.
+        self.condicion.acquire()
+        while len(self) == self.max_elementos:
+            self.condicion.wait()
         super().append(item)
+        self.condicion.notify(1)
+        self.condicion.release()
 
     def insert(self, index, item):
         assert index < self.max_elementos, "indice invalido"
@@ -67,6 +77,7 @@ class Productor(threading.Thread):
         super().__init__()
         self.lista = lista
 
+
     def run(self):
         while True:
             self.lista.append(random.randint(0,100))
@@ -82,7 +93,7 @@ class Consumidor(threading.Thread):
 
     def run(self):
         while True:
-            elemento = self.lista.pop(0)
+            elemento = self.lista.pop()
             logging.info(f'consumio el item {elemento}')
             time.sleep(random.randint(1,5))
 

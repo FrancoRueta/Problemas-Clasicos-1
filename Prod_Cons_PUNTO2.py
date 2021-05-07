@@ -5,50 +5,30 @@ import time
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d [%(threadName)s] - %(message)s', datefmt='%H:%M:%S', level=logging.INFO)
 
-"""
-    Clase listaFinita, extiende la clase list ([]) de modo que puede establecerse un limite máximo
-    al tamaño (cantidad de objetos) de la lista.
-
-    Uso:
-    Declaración
-    lista = listaFinita(Numero_Maximo_Items)
-    # Crea una lista VACIA que admitirá hasta un máximo de Numero_Maximo_Items items
-
-    El acceso a los elementos es igual que en una lista standard, la diferencia es que
-    si se intenta agregar un elemento cuando la lista tiene Numero_Maximo_Items items, dara
-    un mensaje de error y terminara el programa.
-
-    Ejemplos
-    Acceso al elemento i:
-
-    a = lista[i]
-
-    insertar un elemento en la posicón i.
-    lista.insert(i, dato)  # si i es mayor que Numero_Maximo_Items termina el programa y da error
-
-    o
-
-    lista[i] = dato   # Si i es mayor que Numero_Maximo_Items termina el programa y da error.
-
-    agregar un elemento al final de la lista
-
-    lista.append(dato)  # Si la lista tiene Numero_Maximo_Items termina el programa y da error.
-
-"""
 
 class listaFinita(list):
 
     def __init__(self, max_elementos):
             self.max_elementos = max_elementos
             super().__init__()
+            self.condicion = threading.Condition()
 
-    def pop(self, index):
-        assert len(self) != 0, "lista vacia"
-        return super().pop(index)
+    def pop(self,index = 0): #Agregamos el modulo condition.
+        self.condicion.acquire()
+        while len(self) == 0:
+            self.condicion.wait()
+        elemento = super().pop(index)
+        self.condicion.notify(1)
+        self.condicion.release()
+        return elemento
 
-    def append(self, item):
-        assert len(self) < self.max_elementos,"lista llena"
+    def append(self, item): #Agregamos el modulo condition.
+        self.condicion.acquire()
+        while len(self) == self.max_elementos:
+            self.condicion.wait()
         super().append(item)
+        self.condicion.notify(1)
+        self.condicion.release()
 
     def insert(self, index, item):
         assert index < self.max_elementos, "indice invalido"
@@ -63,14 +43,19 @@ class listaFinita(list):
 
 
 class Productor(threading.Thread):
-    def __init__(self, lista = listaFinita):
+    def __init__(self, lista = listaFinita, elementosAppendeables= [("España","Madrid"), ("Francia","Paris"),("Italia","Roma"),("Inglaterra","Londres"),("Alemania","Berlin"),("Rusia","Moscu"),
+("Turquia","Istambul"),("China","Pekin"), ("Japon","Tokio"),("Emiratos Arabes","Dubai"),("Argentina","Buenos Aires"),
+("Brasil","Brasilia"),("Colombia","Bogota"),("Uruguay","Montevideo")]):
         super().__init__()
         self.lista = lista
+        self.elementosAppendeables = elementosAppendeables
 
+    
+    
     def run(self):
         while True:
-            self.lista.append(random.randint(0,100))
-            logging.info(f'produjo el item: {self.lista[-1]}')
+            self.lista.append(random.choice(self.elementosAppendeables))
+            #logging.info(f'Produjo: {self.lista[-1]}')
             time.sleep(random.randint(1,5))
 
 
@@ -82,8 +67,8 @@ class Consumidor(threading.Thread):
 
     def run(self):
         while True:
-            elemento = self.lista.pop(0)
-            logging.info(f'consumio el item {elemento}')
+            elemento = self.lista.pop()
+            logging.info(f'La capital de {elemento[0]} es {elemento[1]}')
             time.sleep(random.randint(1,5))
 
 def main():
