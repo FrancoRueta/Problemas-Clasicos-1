@@ -55,7 +55,7 @@ class Productor(threading.Thread):
     def run(self):
         while True:
             self.lista.append(random.choice(self.elementosAppendeables))
-            #logging.info(f'Produjo: {self.lista[-1]}')
+            logging.info(f'CREADA: {self.lista[-1][0]},{self.lista[-1][1]}')
             time.sleep(random.randint(1,5))
 
 

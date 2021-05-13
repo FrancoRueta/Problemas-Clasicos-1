@@ -49,8 +49,7 @@ from threading  import Lock
 # _______________________________________________________________________
 # Class
 
-class RWLock(object):
-    """ Clase RWLock;  tiene como propósito permitir que un objeto sea leido por multiples hilos
+""" Clase RWLock;  tiene como propósito permitir que un objeto sea leido por multiples hilos
         simultáneamente, pero solo puede ser escrito por un solo hilo a la vez.
 
         Uso:
@@ -73,15 +72,15 @@ class RWLock(object):
                 mi_RWLock.w_release()
 
     """
+class RWLock(object):
     # Constructor
 
     def __init__(self):
 
         self.w_lock = Lock()
         self.num_r_lock = Lock()
-        self.num_r = 0
+        self.num_r = 0 
 
-    # ___________________________________________________________________
     # Metodos de Lectura (Reading).
 
     def r_acquire(self):
@@ -99,8 +98,6 @@ class RWLock(object):
             self.w_lock.release()
         self.num_r_lock.release()
 
-
-    # ___________________________________________________________________
     # Métodos de Escritura (Writing).
 
     def w_acquire(self):

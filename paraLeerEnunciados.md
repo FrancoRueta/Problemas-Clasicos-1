@@ -1,18 +1,21 @@
-Sin alterar la clase listaFinita, modificar el programa de modo que el productor inserte objetos tupla de strings tomados al azar de la siguiente lista.
+P1 - Cuantos Locks hay definidos y cuál de ellos asegura exclusión mútua a los escritores?
 
 
-[("España","Madrid"), ("Francia","Paris"),("Italia","Roma"),("Inglaterra","Londres"),("Alemania","Berlin",("Rusia","Moscu"),
-("Turquia","Istambul"),("China","Pekin"), ("Japon","Tokio"),("Emiratos Arabes","Dubai"),("Argentina","Buenos Aires"),
-("Brasil","Brasilia"),("Colombia","Bogota"),("Uruguay","Montevideo")]
+P2 - Del análisis de los métodos r_acquire() y r_release(), que se transcribe a continuación:
 
-Esta lista contiene tuplas ("pais", "capital").
+    def r_acquire(self):
+        self.num_r_lock.acquire()
+        self.num_r += 1
+        if self.num_r == 1:
+            self.w_lock.acquire()
+        self.num_r_lock.release()
 
-Modificar el consumidor de modo que imprima un mensaje: "La capital de "pais" es "capital".
+    def r_release(self):
+        assert self.num_r > 0
+        self.num_r_lock.acquire()
+        self.num_r -= 1
+        if self.num_r == 0:
+            self.w_lock.release()
+        self.num_r_lock.release()
 
-Por ejemplo:
-
-La capital de Argentina es Buenos Aires
-
-El programa no debe mostrar inconsistencias ni errores debidos a condiciones de carrera o falta de sincronización.
-
-Nota: para la impresión de mensajes utlizar preferentemente el módulo logging.
+Que cuenta la variable numerica num_r ?
